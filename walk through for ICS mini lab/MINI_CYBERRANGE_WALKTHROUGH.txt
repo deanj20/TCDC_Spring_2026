@@ -1,0 +1,298 @@
+MINI CYBER RANGE WALKTHROUGH - For Texas Cyber Defense Challenge - April 2026
+
+Purpose
+- This walkthrough introduces the mini cyber range, explains how students connect, and walks a first-time student through the first three hardening tasks on the blue VM.
+- This is a skeleton draft. Replace bracketed placeholders with your lab-specific names, screenshots, IPs, usernames, and policy notes.
+
+==================================================
+1. Before You Begin
+==================================================
+
+Step 1: Contact Jeremy Dean in Discord
+- Send Jeremy Dean a Discord message and ask to be added to your assigned VM in Tailscale.
+- Include:
+  - Your name
+  - Your Tailscale account email if already created (see step 2)
+- Wait for confirmation before trying to connect (Jeremy must invite you + add your email to ACL).
+
+What Tailscale Is
+- Tailscale is a secure mesh VPN that lets your device connect directly to the lab VM over a private overlay network.
+- Instead of exposing the VM directly to the public internet, Tailscale places approved devices into the same private tailnet.
+- In this lab, Tailscale is used to give students remote access to their assigned blue VM.
+
+Why Tailscale Is Secure
+- Devices must authenticate before joining the tailnet.
+- Access can be restricted to specific users, devices, and systems.
+- Traffic is encrypted end to end.
+- The VM does not need to be broadly exposed on the public internet just so students can reach it.
+- Administrators can remove access quickly if needed.
+
+==================================================
+2. Install Tailscale
+==================================================
+
+Windows (See Install Tailscale Windows PDF)
+- Go to https://tailscale.com/download/windows
+- Download the Windows installer.
+- Run the installer.
+- Open Tailscale from the system tray.
+- Sign in with the account Jeremy told you to use.
+- Confirm your device appears as connected.
+
+macOS
+- Go to https://tailscale.com/download/mac
+- Install the recommended macOS Tailscale client.
+- Complete the macOS network/permission prompts.
+- Sign in with the account Jeremy told you to use.
+- Confirm your Mac shows as connected to the tailnet.
+
+Linux
+- Go to https://tailscale.com/download/linux
+- Install Tailscale using the method for your distribution.
+- For many distributions, the standard install command is:
+  curl -fsSL https://tailscale.com/install.sh | sh
+- Start and authenticate Tailscale:
+  sudo tailscale up
+- Finish login in the browser window that opens.
+- Confirm the device is connected:
+  tailscale status
+
+Connection Check
+- After Jeremy adds you to the correct VM, verify that you can reach the assigned Tailscale IP or hostname.
+(See Accept Tailscale Invite to VM.pdf)
+- Locate the following (tailscale.com or 'tailscale status' in terminal:
+  - Blue VM name: [HOSTNAME]
+  - Blue VM Tailscale IP: [100.x.y.z]
+  - SSH username: blueteam
+  - Password: BlueTeam2026!
+
+==================================================
+3. What the Mini Cyber Range Is
+==================================================
+
+Environment Overview
+- Each student defends a blue VM.
+- The student does not control the red VM.
+- The round is designed to simulate quick host hardening under time pressure.
+- The goal is to reduce the attack surface without locking yourself out or breaking official services.
+
+Student Objective
+- Inspect the system.
+- Identify obvious weaknesses.
+- Harden the host.
+- Keep your own access while reducing the attacker’s options.
+
+Important Lab Notes
+- THE VERY FIRST LOGIN WILL NOT TRIGGER THE REDTEAM - IF YOU CHECK sudo lab-status, YOU WILL SEE: WAIT     first login grace window active;
+- SUBSEQUENT LOGINS WILL TRIGGER RED TEAM 10 MINUTES POST-LOGIN UNLESS CREATIVEMODE OPTIONS ARE IN PLACE
+- Your login will start the round timer. Red Team will begin attacking in 10 minutes.
+- Read the banner and local notes after login:
+  cat ~/LAB-README.txt
+- Run the local checklist:
+  sudo lab-status
+- Official services may include:
+  - SSH
+  - HTTP portal
+  - ICS Store
+  - FTP
+  - SMB
+  - Service board
+- Do not shut down official services.
+- Confirm you can reach the Service Board (https://100.x.y.z:8088) and Store links (https://100.x.y.z:8081) using the VM IP in tailscale status on YOUR local machine
+
+==================================================
+4. Logging In to the Blue VM
+==================================================
+
+SSH Access
+- Open a terminal or SSH client.
+- Connect using the details Jeremy provided:
+  ssh blueteam@[100.x.y.z]
+- Example:
+  ssh blueteam@100.102.89.35
+
+First Checks After Login
+- Read the local instructions:
+  cat ~/LAB-README.txt
+- Run the lab checklist:
+  sudo lab-status
+- Take note of listening services and any warnings already shown.
+- Confirm you can reach the Service Board (https://100.x.y.z:8088) and Store links (https://100.x.y.z:8081) using the VM IP in tailscale status on YOUR local machine
+
+==================================================
+Log Out and Log in again to start Red Team Timer 
+Confirm Red Team is armed with sudo lab-status and the Service Board
+==================================================
+
+==================================================
+5. Hardening Task 1: Identify Listening Services
+==================================================
+
+Goal
+- Find out what is exposed before making changes.
+
+Why This Matters
+- You cannot defend what you have not identified.
+- Attackers often use unnecessary or weak services as their first entry point.
+
+Commands
+- ss -ltnp
+- sudo ss -ltnp
+- systemctl --type=service --state=running
+- sudo lab-status
+
+What the Student Should Look For
+- Which TCP ports are open?
+- Which services are supposed to be part of the lab?
+- Which services look unnecessary, leftover, or suspicious?
+- Are any services bound to all interfaces when they do not need to be?
+
+Student Notes
+- List the open ports you found: [PORTS]
+- List the expected services: [EXPECTED SERVICES]
+- List anything that looks risky: [RISKY SERVICES]
+
+Instructor Notes
+- Expected baseline ports for this lab: 22/tcp, 21/tcp, 80/tcp, 445/tcp, 8080/tcp, 8081/tcp, 8088/tcp
+- Services students should leave alone: ssh, the HTTP portal (apache2 on 80), the ICS Store (8081 via apache2), vsftpd (21), smbd (445), and the service dashboard (8088)
+
+
+
+==================================================
+6. Hardening Task 2: Review Accounts and SSH Authentication
+==================================================
+
+Goal
+- Reduce the chance of a simple login compromise. Note that the MOTD and lab-status indicates an account, student, has a weak password.
+
+Why This Matters
+- Weak local credentials and weak SSH settings are usually fast wins for an attacker.
+
+Commands
+- cat /etc/passwd 
+  (see all accounts + pw hashes)
+- sudo grep -E 'PasswordAuthentication|PermitRootLogin' /etc/ssh/sshd_config /etc/ssh/sshd_config.d/* 2>/dev/null 
+  (check for certain settings in ssh conf)   
+- sudo passwd [WEAK-ACCOUNT]
+  (update weak password)
+- sudo passwd -l [WEAK-ACCOUNT]
+   (prevent logon with password for account)
+
+
+What the Student Should Look For
+- Weak or default accounts
+- Accounts that should be disabled
+- SSH password authentication left enabled when it should not be
+- Root login settings that are too permissive
+
+Suggested Actions
+- Change known weak passwords immediately.
+- Disable or lock accounts that are not needed.
+- If allowed by competition policy, tighten SSH authentication settings.
+- Be careful not to remove your own access.
+
+Checkpoint
+- Which accounts did you change or disable? [ACCOUNTS]
+- Did you verify you can still log in? [YES/NO]
+
+Instructor Notes
+- Known intentionally weak account(s): student
+- Whether students are allowed to disable password auth: [NO]
+- Whether students should install their own SSH key: [OPTIONAL]
+
+==================================================
+7. Hardening Task 3: Apply Basic Firewall Controls
+==================================================
+
+Goal
+- Limit exposed services to only what the student actually needs.
+
+Why This Matters
+- A host with fewer reachable services gives the attacker fewer paths to exploit.
+
+Commands
+- sudo ufw status verbose
+- sudo ufw allow 22/tcp
+- sudo ufw allow [REQUIRED-PORT]/tcp
+- sudo ufw deny [UNNEEDED-PORT]/tcp
+- sudo ufw enable
+
+Safe Order of Operations
+1. Confirm which service ports must remain reachable.
+2. Allow your own remote access first.
+3. Add rules for required official services.
+4. Deny unnecessary ports.
+5. Enable the firewall.
+6. Test that you can still reconnect.
+
+What the Student Should Look For
+- Did SSH remain accessible?
+- Did the official web pages still load?
+- Did lab-status improve?
+
+Checkpoint
+- Firewall status after changes: [STATUS]
+- Ports still allowed: [ALLOWED PORTS]
+- Ports blocked: [BLOCKED PORTS]
+
+Instructor Notes
+- Minimum required ports for the exercise: [22/tcp, 21/tcp, 80/tcp, 445/tcp, 8081/tcp, 8088/tcp]
+- Ports students should consider blocking early: [8080]
+
+==================================================
+8. End of the First Three Tasks
+==================================================
+
+What Success Looks Like
+- The student can still access the VM.
+- Weak accounts have been addressed.
+- SSH is safer than it was at the start.
+- Unneeded exposed services have been identified or restricted.
+- Official services still function.
+
+Quick Verification
+- sudo lab-status
+- Reconnect over SSH in a second terminal.
+- Visit:
+  - http://[BLUE-VM-IP]:8081/
+  - http://[BLUE-VM-IP]:8088/
+
+==================================================
+9. Hints Only: Store and SMB Vulnerabilities
+==================================================
+
+Important Note
+- This section is intentionally only hints. Students should investigate and confirm the actual issue themselves.
+
+Store Hints
+- Treat the ICS Store as an official service that should remain available if possible.
+- Look closely at how the store is configured, what files support it, and whether anything sensitive is exposed alongside the application.
+- Pay attention to credentials, notes, environment files, backup files, or admin shortcuts left where they should not be.
+- If the application itself cannot be fixed quickly, think about containment:
+  - reducing who can reach it
+  - restricting related files
+  - limiting downstream damage if it is exploited
+
+SMB Hints
+- Check whether SMB really needs to be exposed to the same audience it currently serves.
+- Review shares, permissions, guest access, and anonymous access.
+- Look for sensitive files in shared paths.
+- If SMB must remain enabled, harden access instead of leaving it open by default.
+- If SMB is not required for the round, consider whether reducing or removing exposure is the better move.
+
+Instructor Notes / Fill In
+- Store service path or package: /opt/ics-store/public served by Apache via /etc/apache2/sites-available/ics-store.conf; app config in /etc/ics-store/config.php
+- SMB config path: /etc/samba/smb.conf
+- Intended student discovery points: official SMB share [public] points to /srv/public-share; guest access is enabled (guest ok = yes); sensitive notes are intentionally exposed in shared/web/FTP paths including /srv/public-share/IT-logins.txt, /srv/public-share/ICS-Store-recovery.txt, /var/www/html/backups/, and /srv/ftp/public/; ICS Store credentials and admin/search settings are intentionally weak enough for students to discover and harden, including storeadmin and legacy search mode in the store admin workflow
+
+
+==================================================
+10. Debrief / Reflection Prompts
+==================================================
+
+- Which issue was the easiest to find?
+- Which issue was the highest risk?
+- Which hardening change gave the most defensive value the fastest?
+- What almost locked you out?
+- What would you automate if you had to do this again?
+
