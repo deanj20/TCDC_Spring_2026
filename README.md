@@ -53,6 +53,7 @@ Assume the boxes may already be compromised. Keep changes simple, reversible, an
 - Do not apply broad outbound deny rules.
 
 ## Repo Map
+- [VPN_Instructions.md](/home/jeremydean/CyberSec/TCDC_2026/TCDC_Spring_2026/VPN_Instructions.md)
 - [phases/00_game_start.md](/home/jeremydean/CyberSec/TCDC_2026/TCDC_Spring_2026/phases/00_game_start.md)
 - [phases/01_passwords.md](/home/jeremydean/CyberSec/TCDC_2026/TCDC_Spring_2026/phases/01_passwords.md)
 - [phases/02_service_baseline.md](/home/jeremydean/CyberSec/TCDC_2026/TCDC_Spring_2026/phases/02_service_baseline.md)
