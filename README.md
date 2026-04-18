@@ -36,4 +36,4 @@ Core principle: do small, safe, reversible changes that protect scoring services
 - Enable firewall baseline.
 - Verify required services still work.
 - Start monitoring.
-- Assign and confirm team roles.
+- Assign and confirm team roles ..
