@@ -44,6 +44,8 @@ run_shell() {
 
 run_cmd "local users" getent passwd
 run_cmd "sudo group members" getent group sudo
+run_shell "sudoers files" "sed -n '1,200p' /etc/sudoers 2>/dev/null; for f in /etc/sudoers.d/*; do [ -f \"\$f\" ] || continue; echo \"--- \$f ---\"; sed -n '1,200p' \"\$f\"; echo; done"
+run_shell "recently onboarded user details" "for user in chad judy walter; do if id \"\$user\" >/dev/null 2>&1; then echo \"--- \$user ---\"; getent passwd \"\$user\"; id \"\$user\"; groups \"\$user\"; passwd -S \"\$user\" 2>/dev/null || true; home=\$(getent passwd \"\$user\" | cut -d: -f6); if [ -n \"\$home\" ] && [ -d \"\$home\" ]; then ls -ld \"\$home\"; find \"\$home\" -maxdepth 2 \\( -name authorized_keys -o -name .bashrc -o -name .profile -o -name .bash_profile \\) -type f 2>/dev/null | sort | while read -r file; do echo \"--- \$file ---\"; sed -n '1,200p' \"\$file\"; echo; done; else echo '[info] home directory missing or not a directory'; fi; echo; fi; done"
 run_shell "authorized_keys files and contents" "find /root /home -name authorized_keys -type f 2>/dev/null | sort | while read -r file; do echo \"--- \$file ---\"; sed -n '1,200p' \"\$file\"; echo; done"
 run_shell "system cron files" "ls -la /etc/cron* 2>/dev/null"
 run_shell "system crontab" "if [ -f /etc/crontab ]; then sed -n '1,200p' /etc/crontab; else echo '[info] /etc/crontab not present'; fi"

@@ -38,3 +38,4 @@ sudo bash scripts/change_passwords.sh root alice bob mike
 - Save the password offline.
 - Confirm you can still access the host through your intended management path.
 - Move straight into service baseline and service validation.
+- Do not assume password rotation removed persistence. Check keys, cron, systemd, and the recently onboarded accounts right after this step.
